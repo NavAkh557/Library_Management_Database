@@ -2,7 +2,7 @@ import sqlite3
 import hashlib
 import getpass
 
-connection = sqlite3.connect("library management database.db")
+connection = sqlite3.connect("Eldritch Library Management Database.db")
 cursor = connection.cursor()
 cursor.execute(
     "CREATE TABLE IF NOT EXISTS users (username TEXT, password TEXT, role TEXT)")
@@ -11,7 +11,7 @@ cursor.execute(
 def register ():
   username = input("Enter your username: ")
   password = getpass.getpass("Enter your password: ")
-  role = input("Enter your role (admin/user): ")
+  role = input("Assign role (admin/guest): ")
   cursor.execute("INSERT INTO users VALUES (?,?,?)", (username, password, role))
   connection.commit()
   print("Registration successful!")
@@ -33,16 +33,183 @@ def add_book():
   stock = input("Enter the number of copies of the book: ")
   cursor.execute("INSERT INTO books VALUES (?,?,?,?)", (title, author, isbn, stock))
   connection.commit()
-  print("Book added successfully!")
+  print("Book has been added successfully!")
 def remove_book():
   isbn = input("Enter the ISBN of the book to remove: ")
   cursor.execute("DELETE FROM books WHERE isbn = ?", (isbn,))
   connection.commit()
-  print("Book removed successfully!")
-def display_books():
-  cursor.execute("SELECT * FROM books")
+  print("Book has been removed successfully!")
+def display_all_books():
+  connection = sqlite3.connect('Eldritch Horror Library Management System.db')
+  cursor = connection.cursor()
+  cursor.execute('''
+    SELECT * FROM books
+    ''')
   books = cursor.fetchall()
   if books:
+    print ("Book ID\tTitle\t\tAuthor\t\tISBN\t\tAvailable")
+    print ("-" * 50)
     for book in books:
-      print(f"Title: {book[0]}, Author: {book[1]}, ISBN: {book[2]}, Stock: {book[3]}")
-    
+      print (f" {book[0]:<8} | {book[1]:<10} | {book[2]:<10} | {book[3]:<10} | {book[4]:<10}")
+  else:
+    print ("No books are available in the Libary")
+  connection.close()
+def update_book_stock():
+  isbn = input("Enter the ISBN of the book to update: ")
+  new_stock = input("Enter number of stock: ")
+  cursor.execute("UPDATE books SET stock = ? WHERE isbn = ?", (new_stock, isbn))
+  connection.commit()
+  print("Book stock has been updated successfully!")
+def search_book():
+  search_term = input("Enter the title or author of the book you would like to search: ")
+  cursor.execute("SELECT * FROM books WHERE title LIKE ? OR author LIKE ?", ('%' + search_term + '%', '%' + search_term + '%'))
+  books = cursor.fetchall()
+  if books:
+    print ("Book ID\tTitle\t\tAuthor\t\tISBN\t\tAvailable")
+    print ("-" * 50)
+    for book in books:
+      print (f" {book[0]:<8} | {book[1]:<10} | {book[2]:<10} | {book[3]:<10} | {book[4]:<10}")
+  else:
+    print ("No books are currantly available in the Libary")
+def borrow_book():
+  connection = sqlite3.connect('Eldritch Horror Library Management System.db')
+  cursor = connection.cursor()
+  cursor.execute('''
+    SELECT * FROM books
+    ''')
+  books = cursor.fetchall()
+  if books:
+    print ("Book ID\tTitle\t\tAuthor\t\tISBN\t\tAvailable")
+    print ("-" * 50)
+    for book in books:
+      print (f" {book[0]:<8} | {book[1]:<10} | {book[2]:<10} | {book[3]:<10} | {book[4]:<10}")
+    book_id = input("Enter the ID of the book you wish to borrow: ")
+    cursor.execute("SELECT * FROM books WHERE id = ?", (book_id,))
+    book = cursor.fetchone()
+    if book:
+      if book[4] > 0:
+        cursor.execute("UPDATE books SET available = available - 1 WHERE id = ?", (book_id,))
+        connection.commit()
+        print("Book borrowed successfully!")
+      else:
+        print("Sorry, the book is currently not available.")
+    else:
+      print("Unable to find book.")
+  else:
+    print ("No books are available in the Libary")
+  connection.close()
+def return_book():
+  connection = sqlite3.connect('Eldritch Horror Library Management System.db')
+  cursor = connection.cursor()
+  cursor.execute('''
+    SELECT * FROM books
+    ''')
+  books = cursor.fetchall()
+  if books:
+    print ("Book ID\tTitle\t\tAuthor\t\tISBN\t\tAvailable")
+    print ("-" * 50)
+    for book in books:
+      print (f" {book[0]:<8} | {book[1]:<10} | {book[2]:<10} | {book[3]:<10} | {book[4]:<10}")
+    book_id = input("Enter the ID of the book to return: ")
+    cursor.execute("SELECT * FROM books WHERE id = ?", (book_id,))
+    book = cursor.fetchone()
+    if book:
+      if book[4] < book[3]:
+        cursor.execute("UPDATE books SET available = available + 1 WHERE id = ?", (book_id,))
+        connection.commit()
+        print("Book has been returned successfully!")
+      else:
+        print("Sorry, the book is unable to be returned.")
+    else:
+      print("Book not found.")
+  else:
+    print ("No books are available in the Libary")
+  connection.close()
+def display_all_users():
+  connection = sqlite3.connect('Eldritch Horror Library Management System.db')
+  cursor = connection.cursor()
+  cursor.execute('''
+    SELECT * FROM users
+    ''')
+  users = cursor.fetchall()
+  if users:
+    print ("User ID\tUsername\tRole")
+    print ("-" * 50)
+    for user in users:
+      print (f" {user[0]:<8} | {user[1]:<10} | {user[2]:<10}")
+  else:
+    print ("No users are available in the Libary")
+  connection.close()
+def update_user_role():
+  user_id = input("Enter the User ID of the user to update: ")
+  new_role = input("Enter the new role of the user (admin/user): ")
+  cursor.execute("UPDATE users SET role = ? WHERE user_id = ?", (new_role, user_id))
+  connection.commit()
+  print("User role has been updated successfully!")
+def main():
+  while True:
+    print("Welcome to the Eldritch Horror Library Management System!")
+    print("1. Register")
+    print("2. Login")
+    print("3. Exit")
+    choice = input("Enter your choice: ")
+    if choice == "1":
+      register()
+    elif choice == "2":
+      user = login()
+      if user == 'guest':
+        while True:
+          print("Welcome, " + user + "!")
+          print("1. Display books")
+          print("2. Borrow a book")
+          print("3. Return a book")
+          print("4. Exit")
+          choice = input("Enter your choice: ")
+          if choice == "1":
+            display_all_books()
+          elif choice == "2":
+            borrow_book()
+          elif choice == "3":
+            return_book()
+          elif choice == "4":
+            break
+          else:
+            print("Invalid choice. Please try again.")
+      elif user == 'admin' or user == 'user' :
+        while True:
+          print("Welcome, " + user + "!")
+          print("1. Display books")
+          print("2. Add a book")
+          print("3. Remove a book")
+          print("4. Update book stock")
+          print("5. Search for a book")
+          print("6. Display all users")
+          print("7. Update user role")
+          print("8. Exit")
+          choice = input("Enter your choice: ")
+          if choice == "1":
+            display_all_books()
+          elif choice == "2":
+            add_book()
+          elif choice == "3":
+            remove_book()
+          elif choice == "4":
+            update_book_stock()
+          elif choice == "5":
+            search_book()
+          elif choice == "6":
+            display_all_users()
+          elif choice == "7":
+            update_user_role()
+          elif choice == "8":
+            break
+          else:
+            print("Invalid choice. Please try again.")
+    elif choice == "3":
+      break
+    else:
+      print("Invalid choice. Please try again.")
+if __name__ == "__main__":
+  main()
+
+
