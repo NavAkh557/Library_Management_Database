@@ -150,6 +150,20 @@ def update_user_role():
   cursor.execute("UPDATE users SET role = ? WHERE username = ?", (role, username))
   print("User role has been updated successfully!")
   connection.commit() 
+def sort_books_by_isbn():
+  connection = sqlite3.connect('Eldritch Library Management Database.db')
+  cursor = connection.cursor()
+  cursor.execute( 'SELECT * FROM books ORDER BY isbn')
+  books = cursor.fetchall()
+  if books:
+    print ("Books sorted by isbn")
+    print ("Title\t\tAuthor\t\tISBN\t\tAvailable")
+    print ("-" * 50)
+    for book in books:
+      print (f" {book[0]:<8} | {book[1]:<10} | {book[2]:<10} | {book[3]:<10}")
+  else:
+    print ("No books are available in the Libary")
+  connection.close()
 def main():
   while True:
     print("Welcome to the Eldritch Library Management System!")
@@ -187,9 +201,10 @@ def main():
           print("3. Remove a book")
           print("4. Update book stock")
           print("5. Search for a book")
-          print("6. Display all users")
-          print("7. Update user role")
-          print("8. Exit")
+          print("6. Sort books by isbn")
+          print("7. Display all users")
+          print("8. Update user role")
+          print("9. Exit")
           choice = input("Enter your choice: ")
           if choice == "1":
             display_all_books()
@@ -202,10 +217,12 @@ def main():
           elif choice == "5":
             search_book()
           elif choice == "6":
-            display_all_users()
+            sort_books_by_isbn()
           elif choice == "7":
-            update_user_role()
+            display_all_users()
           elif choice == "8":
+            update_user_role()
+          elif choice == "9":
             break
           else:
             print("Invalid choice. Please try again.")
