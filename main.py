@@ -179,11 +179,12 @@ def return_book():
     print ("-" * 50)
   #Reads for books information and prints it in columns
     for book in books:
+      #formats and print book information with use of f strings
       print (f" {book[0]:<8} | {book[1]:<10} | {book[2]:<10} | {book[3]:<10}")
     #prompts user to enter the isbn of the book they want to return
     isbn = input("Enter the isbn of the book to return: ")
     cursor.execute("SELECT * FROM books WHERE isbn = ?", (isbn,))
-    #fetcches the first matching record returned by the query
+    #fetches the first matching record returned by the query
     book = cursor.fetchone()
     #checks to see if the book is available in the database
     if book:
@@ -331,7 +332,9 @@ def main():
       break
     else:
       print("Invalid choice. Please try again.")
+#Checks to see if the script is running
 if __name__ == "__main__":
+#if script is running, call the main function to start program
   main()
 
 
